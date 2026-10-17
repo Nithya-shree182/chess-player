@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+# 80 MB Stockfish download: fetch it per machine (see PLAN.md section 17), don't commit it
+engines/
+# generated outputs / camera snapshots
+sim/out/
+frames/
+.codesight/
