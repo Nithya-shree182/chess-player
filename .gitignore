@@ -8,3 +8,6 @@ frames/
 .codesight/
 dataset/
 runs/
+.venv/
+*.pt
+*.part

@@ -1,0 +1,27 @@
+{
+ "corners_px": [
+  [
+   287,
+   560
+  ],
+  [
+   905,
+   578
+  ],
+  [
+   858,
+   150
+  ],
+  [
+   378,
+   148
+  ]
+ ],
+ "order": [
+  "a1",
+  "h1",
+  "h8",
+  "a8"
+ ],
+ "note": "estimated by eye from third camera frame; replace via board_map.py calibrate"
+}
