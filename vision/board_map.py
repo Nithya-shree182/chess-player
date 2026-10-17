@@ -1,6 +1,6 @@
 """Manual board calibration + pixel <-> square mapping (replaces ArUco while the board and camera are fixed).
 
-Calibrate:  python board_map.py calibrate [http://localhost:8080/snapshot | image.jpg]
+Calibrate:  python board_map.py calibrate [snapshot/stream URL | image.jpg] [out.json]   (one json per camera)
   Click the 4 outer corners of the 8x8 playing area in THIS order:  a1, h1, h8, a8
   (a1 = white's bottom-left corner as seen from white's side; clicking in this order fixes the board orientation).
   Press s to save, r to redo, q to quit.  Writes board_calib.json next to this file.
@@ -70,13 +70,21 @@ class BoardMap:
 
 
 def load_image(src):
+    if src.startswith("http") and src.rstrip("/").endswith("stream"):      # MJPEG stream without a /snapshot endpoint
+        cap = cv2.VideoCapture(src)
+        for _ in range(5):                                                # skip a few frames so the buffer is fresh
+            ok, frame = cap.read()
+        cap.release()
+        if not ok:
+            raise RuntimeError(f"no frame from {src}")
+        return frame
     if src.startswith("http"):
         data = np.frombuffer(urllib.request.urlopen(src, timeout=5).read(), np.uint8)
         return cv2.imdecode(data, cv2.IMREAD_COLOR)
     return cv2.imread(src)
 
 
-def calibrate(src):
+def calibrate(src, out=CALIB):
     img = load_image(src)
     pts = []
 
@@ -101,8 +109,8 @@ def calibrate(src):
         if k == ord("r"):
             pts.clear(); redraw()
         elif k == ord("s") and len(pts) == 4:
-            json.dump({"corners_px": pts, "order": ORDER, "image_size": img.shape[1::-1]}, open(CALIB, "w"), indent=1)
-            print("saved", CALIB); break
+            json.dump({"corners_px": pts, "order": ORDER, "image_size": img.shape[1::-1]}, open(out, "w"), indent=1)
+            print("saved", out); break
         elif k == ord("q"):
             break
     cv2.destroyAllWindows()
@@ -110,4 +118,5 @@ def calibrate(src):
 
 if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "calibrate":
-        calibrate(sys.argv[2] if len(sys.argv) > 2 else "http://localhost:8080/snapshot")
+        calibrate(sys.argv[2] if len(sys.argv) > 2 else "http://localhost:8080/snapshot",
+                  sys.argv[3] if len(sys.argv) > 3 else CALIB)
